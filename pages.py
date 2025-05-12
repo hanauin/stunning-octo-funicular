@@ -4,10 +4,6 @@ import os
 
 # OpenAI API 키 설정 (환경변수 또는 직접 입력)
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-if not st.session_state.api_key:
-    st.warning("API 키를 입력하세요.")
-    st.stop()
     
 st.set_page_config(page_title="ChatBot with OpenAI", layout="centered")
 st.title("🤖 Chat with OpenAI")
