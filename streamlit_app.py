@@ -1,5 +1,5 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 
 # API 키 입력 받기
 if "api_key" not in st.session_state:
@@ -13,22 +13,21 @@ if not st.session_state.api_key:
     st.warning("API 키를 입력하세요.")
     st.stop()
 
-openai.api_key = st.session_state.api_key
+# OpenAI 클라이언트 초기화
+client = OpenAI(api_key=st.session_state.api_key)
 
 # 질문 입력
 user_input = st.text_input("질문을 입력하세요:")
 
 @st.cache_data(show_spinner="GPT 응답을 생성 중입니다...")
-def get_gpt_response(prompt, api_key):
-    openai.api_key = api_key
-    response = openai.ChatCompletion.create(
-        model="gpt-4-0125-preview",  # gpt-4.1-mini에 해당하는 최신 이름
+def get_gpt_response(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4-0125-preview",  # GPT-4.1-mini 대응 모델
         messages=[{"role": "user", "content": prompt}],
     )
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
-# 응답 출력
 if user_input:
-    answer = get_gpt_response(user_input, st.session_state.api_key)
+    answer = get_gpt_response(user_input)
     st.markdown("### 💬 GPT 응답:")
     st.write(answer)
