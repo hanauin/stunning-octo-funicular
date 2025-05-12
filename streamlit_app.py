@@ -1,39 +1,34 @@
 import streamlit as st
 import openai
 
-st.set_page_config(page_title="GPT 질문 응답", page_icon="🤖")
-st.title("💬 GPT 질문 응답 웹 앱")
+# API 키 입력 받기
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
 
-# API Key 입력받기 (비밀번호 형태)
-api_key = st.text_input("🔑 OpenAI API Key를 입력하세요", type="password")
+st.session_state.api_key = st.text_input(
+    "OpenAI API Key를 입력하세요", type="password", value=st.session_state.api_key
+)
+
+if not st.session_state.api_key:
+    st.warning("API 키를 입력하세요.")
+    st.stop()
+
+openai.api_key = st.session_state.api_key
 
 # 질문 입력
-question = st.text_input("❓ 질문을 입력하세요")
+user_input = st.text_input("질문을 입력하세요:")
 
-# GPT 응답 함수 (캐시 적용)
-@st.cache_data(show_spinner="🤖 GPT가 응답 중입니다...")
-def get_gpt_response(api_key: str, user_question: str) -> str:
+@st.cache_data(show_spinner="GPT 응답을 생성 중입니다...")
+def get_gpt_response(prompt, api_key):
     openai.api_key = api_key
     response = openai.ChatCompletion.create(
-        model="gpt-4",  # 또는 "gpt-4o", "gpt-3.5-turbo"
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": user_question}
-        ],
-        temperature=0.7
+        model="gpt-4-0125-preview",  # gpt-4.1-mini에 해당하는 최신 이름
+        messages=[{"role": "user", "content": prompt}],
     )
-    return response.choices[0].message["content"]
+    return response["choices"][0]["message"]["content"]
 
-# 버튼 클릭 시 실행
-if st.button("응답 받기"):
-    if not api_key:
-        st.warning("🔐 먼저 OpenAI API Key를 입력해주세요.")
-    elif not question:
-        st.warning("💬 질문을 입력해주세요.")
-    else:
-        try:
-            answer = get_gpt_response(api_key, question)
-            st.markdown("### ✅ GPT 응답")
-            st.write(answer)
-        except Exception as e:
-            st.error(f"❌ 오류 발생: {e}")
+# 응답 출력
+if user_input:
+    answer = get_gpt_response(user_input, st.session_state.api_key)
+    st.markdown("### 💬 GPT 응답:")
+    st.write(answer)
